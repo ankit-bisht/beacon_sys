@@ -20,5 +20,7 @@ Route::group([
     'prefix' => 'beacon_sys',
     'middleware' => 'cors'
 ], function () {
-    Route::post('fetchnodes', '/app/Http/Controllers/BeaconController@fetchNodes');
+    Route::post('fetchnodes', 'BeaconController@fetchNodes');
+    Route::post('addBeacon', 'AdminController@create');
 });
+
