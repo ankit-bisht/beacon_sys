@@ -20,6 +20,21 @@ return [
         'empty_nodes_error_message' => 'No Adjacent Nodes found!',
         'SOMETHING_WENT_WRONG_ERROR_MESSAGE'=>'Something Went Wrong',
         'DATA_NOT_FOUND_MESSAGE'=>'Data Not Found',
+        'empty_node_error_code' => 204
+    ],
+    'error_message' => [
+        'empty_node_error_message' => 'Could not find your location!'
+    ],
+    'reverse_direction' => [
+        'North'=>'South',
+        'North East'=>'South West',
+        'East'=>'West',
+        'South East'=>'North West',
+        'South'=>'North',
+        'South West'=>'North East',
+        'West'=>'East',
+        'North West'=>'South East',
+
     ]
 
 ];
