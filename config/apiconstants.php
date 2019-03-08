@@ -12,14 +12,14 @@ return [
         'empty_node_error_message' => 'Could not find your location!'
     ],
     'reverse_direction' => [
-        'N'=>'S',
-        'NE'=>'SW',
-        'E'=>'W',
-        'SE'=>'NW',
-        'S'=>'N',
-        'SW'=>'NE',
-        'W'=>'E',
-        'NW'=>'SE',
+        'North'=>'South',
+        'North East'=>'South West',
+        'East'=>'West',
+        'South East'=>'North West',
+        'South'=>'North',
+        'South West'=>'North East',
+        'West'=>'East',
+        'North West'=>'South East',
 
     ]
 
