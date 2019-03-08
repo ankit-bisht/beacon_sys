@@ -15,7 +15,7 @@ class BeaconListings extends Migration
     {
         Schema::create('beacon_listings', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('beacon_uuid')->comment = "beacon uuid";
+            $table->string('beacon_uuid',50)->comment = "beacon uuid";
             $table->Integer('location_x')->comment = "longitude";
             $table->Integer('location_y')->comment = "latitude";
             $table->string('desc')->comment = "location description";

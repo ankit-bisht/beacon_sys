@@ -16,3 +16,9 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::group([
+    'prefix' => 'beacon_sys',
+    'middleware' => 'cors'
+], function () {
+    Route::post('fetchnodes', '/app/Http/Controllers/BeaconController@fetchNodes');
+});
