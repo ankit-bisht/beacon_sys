@@ -18,9 +18,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 Route::group([
     'prefix' => 'beacon_sys',
-    'middleware' => 'cors'
 ], function () {
     Route::post('fetchnodes', 'BeaconController@fetchNodes');
     Route::post('addBeacon', 'AdminController@create');
+    Route::get('showBeacon', 'AdminController@show');
+    Route::get('getBeaconList', 'AdminController@getBeaconList');
 });
 

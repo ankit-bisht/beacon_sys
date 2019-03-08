@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\CommonModel;
+use DB;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -23,11 +25,70 @@ class AdminController extends Controller
      */
     public function create(Request $request)
     {
-        try{
-            $beacon_uuid = $request->beacon_id;
-        }catch(\Exception $e){
+        try {
+            $beaconId = $request->beacon_id;
+            $locationX = $request->location_x;
+            $locationY = $request->location_y;
+            $discription = $request->discription;
+            $discription = strtolower($discription);
+            $adjacentNodes = $request->adjacent_nodes;
+            $nodes = explode(',', $adjacentNodes);
+            // dd($nodes);
 
+            foreach ($nodes as $node) {
+                $getLocations = DB::table('beacon_listings')
+                                ->where('desc', '=', $node)
+                                ->first();
+                $latitudeTo = $getLocations->location_x;
+                $longitudeTo = $getLocations->location_y;
+                $distance = $this->haversineGreatCircleDistance($locationX, $locationY, $latitudeTo, $longitudeTo);
+                $getMaxId = DB::table('beacon_listings')
+                            ->max('id');
+                $newEntryId = $getMaxId+1;
+                $getnodeId = $getLocations->id;
+                $edgeName = $newEntryId.$getnodeId;
+                $ConnectionsList = array('edge_name'=>$edgeName , 'first_node' =>$newEntryId ,'second_node'=>$getnodeId,'distance'=>$distance ,'created_on'=>time(),'updated_on'=>time());
+                $saveConnectionsList = DB::table('beacon_connections_lists')
+                                       ->insert($ConnectionsList);
+            }
+            $beaconData = array('beacon_uuid'=>$beaconId,'location_x'=>$locationX,'location_y'=>$locationY,'desc'=>$discription,'created_on'=>time(),'updated_on'=>time());
+            $saveBeacon = DB::table('beacon_listings')
+                          ->insert($beaconData);
+            if ($saveBeacon == true) {
+                $response = (new CommonModel)->responseGenerate(
+                    config('apiconstants.success_code'),
+                    config('apiconstants.success_message.beacon_saved_success_message')
+                );
+            }
+        } catch (\Exception $e) {
+            $response = (new CommonModel)->responseGenerate(
+                config('apiconstants.error_code.SOMETHING_WENT_WRONG_ERROR_CODE'),
+                config('apiconstants.error_message.SOMETHING_WENT_WRONG_ERROR_MESSAGE')
+            );
         }
+        return $response;
+    }
+
+
+    public function haversineGreatCircleDistance(
+        $latitudeFrom,
+        $longitudeFrom,
+        $latitudeTo,
+        $longitudeTo,
+        $earthRadius = 63.71000
+    ) {
+        // convert from degrees to radians
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+          cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        return $angle * $earthRadius;
     }
 
     /**
@@ -38,7 +99,6 @@ class AdminController extends Controller
      */
     public function store(Request $request)
     {
-
     }
 
     /**
@@ -47,9 +107,30 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show()
     {
-        //
+        try {
+            $getBeaconData = DB::table('beacon_listings')
+                            ->get();
+            if (!empty($getBeaconData)) {
+                $response = (new CommonModel)->responseGenerate(
+                    config('apiconstants.success_code'),
+                    config('apiconstants.success_message.beacon_fetched_success_message'),
+                    $getBeaconData
+                );
+            } else {
+                $response = (new CommonModel)->responseGenerate(
+                    config('apiconstants.error_code.DATA_NOT_FOUND'),
+                    config('apiconstants.error_message.DATA_NOT_FOUND_MESSAGE')
+                );
+            }
+        } catch (\Exception $e) {
+            $response = (new CommonModel)->responseGenerate(
+                config('apiconstants.error_code.SOMETHING_WENT_WRONG_ERROR_CODE'),
+                config('apiconstants.error_message.SOMETHING_WENT_WRONG_ERROR_MESSAGE')
+            );
+        }
+        return $response;
     }
 
     /**
@@ -60,7 +141,9 @@ class AdminController extends Controller
      */
     public function edit($id)
     {
-        //
+        try {
+        } catch (\Exception $e) {
+        }
     }
 
     /**
@@ -72,7 +155,6 @@ class AdminController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
     }
 
     /**
@@ -85,4 +167,33 @@ class AdminController extends Controller
     {
         //
     }
+
+    public function getBeaconList()
+    {
+        try {
+            $getList = DB::table('beacon_listings')
+            ->select('desc')
+            ->get();
+            if (!empty($getList)) {
+                $response = (new CommonModel)->responseGenerate(
+                    config('apiconstants.success_code'),
+                    config('apiconstants.success_message.beacon_fetched_success_message'),
+                    $getList
+                );
+            } else {
+                $response = (new CommonModel)->responseGenerate(
+                    config('apiconstants.error_code.DATA_NOT_FOUND'),
+                    config('apiconstants.error_message.DATA_NOT_FOUND_MESSAGE')
+                );
+            }
+        } catch (\Exception $e) {
+            $response = (new CommonModel)->responseGenerate(
+                config('apiconstants.error_code.SOMETHING_WENT_WRONG_ERROR_CODE'),
+                config('apiconstants.error_message.SOMETHING_WENT_WRONG_ERROR_MESSAGE')
+            );
+        }
+        return $response;
+    }
+
+
 }
