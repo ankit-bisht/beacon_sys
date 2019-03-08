@@ -6,10 +6,21 @@ return [
         'nodes_fetched_success_message' => 'Nodes Fetched Successfully!'
     ],
     'error_code' => [
-        'empty_nodes_error_code' => 601
+        'empty_node_error_code' => 204
     ],
     'error_message' => [
-        'empty_nodes_error_message' => 'No Adjacent Nodes found!'
+        'empty_node_error_message' => 'Could not find your location!'
+    ],
+    'reverse_direction' => [
+        'N'=>'S',
+        'NE'=>'SW',
+        'E'=>'W',
+        'SE'=>'NW',
+        'S'=>'N',
+        'SW'=>'NE',
+        'W'=>'E',
+        'NW'=>'SE',
+
     ]
 
 ];
