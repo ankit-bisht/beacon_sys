@@ -15,11 +15,13 @@ return [
         'empty_node_error_code' => 204,
         'SOMETHING_WENT_WRONG_ERROR_CODE' => 450,
         'DATA_NOT_FOUND' => 400,
+        'beacon_already_exists_error_code' => 455
     ],
     'error_message' => [
         'empty_node_error_message' => 'Could not find your location!',
         'SOMETHING_WENT_WRONG_ERROR_MESSAGE' => 'Something Went Wrong',
         'DATA_NOT_FOUND_MESSAGE' => 'Data Not Found',
+        'beacon_already_exists_error_message' => 'Beacon already exists in DB.'
     ],
     'reverse_direction' => [
         'North' => 'South',

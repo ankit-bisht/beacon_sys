@@ -29,35 +29,42 @@ class AdminController extends Controller
             $beaconId = $request->beacon_id;
             $locationX = $request->location_x;
             $locationY = $request->location_y;
-            $discription = $request->discription;
-            $discription = strtolower($discription);
-            $adjacentNodes = $request->adjacent_nodes;
-            $nodes = explode(',', $adjacentNodes);
-            // dd($nodes);
+            $discription = strtolower($request->discription);
+            $nodes =  explode(',',$request->adjacent_nodes);
+            $beaconUUIDCheck = DB::Table('beacon_listings')
+                ->where('beacon_uuid', $beaconId)
+                ->first();
+            if (empty($beaconUUIDCheck)) {
+                $beaconData = array('beacon_uuid' => $beaconId, 'location_x' => $locationX, 'location_y' => $locationY, 'desc' => $discription, 'created_on' => time(), 'updated_on' => time());
+                $saveBeacon = DB::table('beacon_listings')
+                    ->insert($beaconData);
+                foreach ($nodes as $node) {
+                    $getLocations = DB::table('beacon_listings')
+                        ->where('desc', '=', $node)
+                        ->first();
+                    $latitudeTo = $getLocations->location_x;
+                    $longitudeTo = $getLocations->location_y;
+                    $distance = $this->haversineGreatCircleDistance($locationX, $locationY, $latitudeTo, $longitudeTo);
+                    $newEntryId =( DB::table('beacon_listings')
+                        ->where('beacon_uuid',$beaconId)
+                        ->first())->id;
+                    $getnodeId = $getLocations->id;
+                    $edgeName = $newEntryId . $getnodeId;
+                    $ConnectionsList = array('edge_name' => $edgeName, 'first_node' => $newEntryId, 'second_node' => $getnodeId, 'distance' => $distance, 'direction_name' => 'North', 'created_on' => time(), 'updated_on' => time());
+                    DB::table('beacon_connections_lists')
+                        ->insert($ConnectionsList);
+                }
 
-            foreach ($nodes as $node) {
-                $getLocations = DB::table('beacon_listings')
-                                ->where('desc', '=', $node)
-                                ->first();
-                $latitudeTo = $getLocations->location_x;
-                $longitudeTo = $getLocations->location_y;
-                $distance = $this->haversineGreatCircleDistance($locationX, $locationY, $latitudeTo, $longitudeTo);
-                $getMaxId = DB::table('beacon_listings')
-                            ->max('id');
-                $newEntryId = $getMaxId+1;
-                $getnodeId = $getLocations->id;
-                $edgeName = $newEntryId.$getnodeId;
-                $ConnectionsList = array('edge_name'=>$edgeName , 'first_node' =>$newEntryId ,'second_node'=>$getnodeId,'distance'=>$distance ,'created_on'=>time(),'updated_on'=>time());
-                $saveConnectionsList = DB::table('beacon_connections_lists')
-                                       ->insert($ConnectionsList);
-            }
-            $beaconData = array('beacon_uuid'=>$beaconId,'location_x'=>$locationX,'location_y'=>$locationY,'desc'=>$discription,'created_on'=>time(),'updated_on'=>time());
-            $saveBeacon = DB::table('beacon_listings')
-                          ->insert($beaconData);
-            if ($saveBeacon == true) {
+                if ($saveBeacon == true) {
+                    $response = (new CommonModel)->responseGenerate(
+                        config('apiconstants.success_code'),
+                        config('apiconstants.success_message.beacon_saved_success_message')
+                    );
+                }
+            } else {
                 $response = (new CommonModel)->responseGenerate(
-                    config('apiconstants.success_code'),
-                    config('apiconstants.success_message.beacon_saved_success_message')
+                    config('apiconstants.error_code.beacon_already_exists_error_code'),
+                    config('apiconstants.error_message.beacon_already_exists_error_message')
                 );
             }
         } catch (\Exception $e) {
@@ -87,7 +94,7 @@ class AdminController extends Controller
         $lonDelta = $lonTo - $lonFrom;
 
         $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
-          cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
         return $angle * $earthRadius;
     }
 
@@ -98,8 +105,7 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-    }
+    { }
 
     /**
      * Display the specified resource.
@@ -111,7 +117,7 @@ class AdminController extends Controller
     {
         try {
             $getBeaconData = DB::table('beacon_listings')
-                            ->get();
+                ->get();
             if (!empty($getBeaconData)) {
                 $response = (new CommonModel)->responseGenerate(
                     config('apiconstants.success_code'),
@@ -141,9 +147,7 @@ class AdminController extends Controller
      */
     public function edit($id)
     {
-        try {
-        } catch (\Exception $e) {
-        }
+        try { } catch (\Exception $e) { }
     }
 
     /**
@@ -154,8 +158,7 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {
-    }
+    { }
 
     /**
      * Remove the specified resource from storage.
@@ -172,8 +175,8 @@ class AdminController extends Controller
     {
         try {
             $getList = DB::table('beacon_listings')
-            ->select('desc')
-            ->get();
+                ->select('desc')
+                ->get();
             if (!empty($getList)) {
                 $response = (new CommonModel)->responseGenerate(
                     config('apiconstants.success_code'),
@@ -194,6 +197,4 @@ class AdminController extends Controller
         }
         return $response;
     }
-
-
 }
