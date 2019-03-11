@@ -32,6 +32,8 @@ class BeaconController extends Controller
                         $adjacent_nodes[$i]->desc = ((new CommonModel)->fetchNodeByID($adjacent_nodes[$i]->first_node))->desc;
                         $adjacent_nodes[$i]->direction_name = config('apiconstants.reverse_direction')[$adjacent_nodes[$i]->direction_name];
                     }
+                    $adjacent_nodes[$i]->distance = ($adjacent_nodes[$i]->distance)/10;
+
                 }
                 $data['adjacent_nodes'] = $adjacent_nodes;
                 $responseMessage = config('apiconstants.success_message.nodes_fetched_success_message');

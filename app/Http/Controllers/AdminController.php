@@ -29,8 +29,8 @@ class AdminController extends Controller
             $beaconId = $request->beacon_id;
             $locationX = $request->location_x;
             $locationY = $request->location_y;
-            $discription = strtolower($request->discription);
-            $nodes =  explode(',',$request->adjacent_nodes);
+            $discription = strtolower($request->description);
+            $nodes =  explode(',', $request->adjacent_node);
             $beaconUUIDCheck = DB::Table('beacon_listings')
                 ->where('beacon_uuid', $beaconId)
                 ->first();
@@ -38,21 +38,24 @@ class AdminController extends Controller
                 $beaconData = array('beacon_uuid' => $beaconId, 'location_x' => $locationX, 'location_y' => $locationY, 'desc' => $discription, 'created_on' => time(), 'updated_on' => time());
                 $saveBeacon = DB::table('beacon_listings')
                     ->insert($beaconData);
-                foreach ($nodes as $node) {
-                    $getLocations = DB::table('beacon_listings')
-                        ->where('desc', '=', $node)
-                        ->first();
-                    $latitudeTo = $getLocations->location_x;
-                    $longitudeTo = $getLocations->location_y;
-                    $distance = $this->haversineGreatCircleDistance($locationX, $locationY, $latitudeTo, $longitudeTo);
-                    $newEntryId =( DB::table('beacon_listings')
-                        ->where('beacon_uuid',$beaconId)
-                        ->first())->id;
-                    $getnodeId = $getLocations->id;
-                    $edgeName = $newEntryId . $getnodeId;
-                    $ConnectionsList = array('edge_name' => $edgeName, 'first_node' => $newEntryId, 'second_node' => $getnodeId, 'distance' => $distance, 'direction_name' => 'North', 'created_on' => time(), 'updated_on' => time());
-                    DB::table('beacon_connections_lists')
-                        ->insert($ConnectionsList);
+                if (!empty($nodes[0])) {
+                    foreach ($nodes as $node) {
+                        $getLocations = DB::table('beacon_listings')
+                            ->where('desc', '=', $node)
+                            ->first();
+                        $latitudeTo = $getLocations->location_x;
+                        $longitudeTo = $getLocations->location_y;
+                        $distance = $this->haversineGreatCircleDistance($locationX, $locationY, $latitudeTo, $longitudeTo);
+                        $newEntryId = (DB::table('beacon_listings')
+                            ->where('beacon_uuid', $beaconId)
+                            ->first())->id;
+                        $getnodeId = $getLocations->id;
+                        $edgeName = $newEntryId . $getnodeId;
+                        $directionName = (new CommonModel)->bearing($locationX, $locationY, $latitudeTo, $longitudeTo);
+                        $ConnectionsList = array('edge_name' => $edgeName, 'first_node' => $newEntryId, 'second_node' => $getnodeId, 'distance' => $distance, 'direction_name' => $directionName, 'created_on' => time(), 'updated_on' => time());
+                        DB::table('beacon_connections_lists')
+                            ->insert($ConnectionsList);
+                    }
                 }
 
                 if ($saveBeacon == true) {
@@ -68,6 +71,8 @@ class AdminController extends Controller
                 );
             }
         } catch (\Exception $e) {
+            echo $e;
+            die;
             $response = (new CommonModel)->responseGenerate(
                 config('apiconstants.error_code.SOMETHING_WENT_WRONG_ERROR_CODE'),
                 config('apiconstants.error_message.SOMETHING_WENT_WRONG_ERROR_MESSAGE')
